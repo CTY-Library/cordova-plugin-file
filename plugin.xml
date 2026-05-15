@@ -202,6 +202,13 @@ to config.xml in order for the application to find previously stored files.
         <framework src="MobileCoreServices.framework" />
 
         <resource-file src="src/ios/CDVFile.bundle" target="CDVFile.bundle" />
+        
+        <config-file  target="*-Info.plist" parent="UIFileSharingEnabled">
+            <true/>
+        </config-file>
+        <config-file  target="*-Info.plist" parent="LSSupportsOpeningDocumentsInPlace">
+            <true/>
+        </config-file>
     </platform>
 
     <!-- osx -->
