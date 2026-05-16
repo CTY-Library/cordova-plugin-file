@@ -48,7 +48,11 @@ public class LocalFilesystem extends Filesystem {
     }
 
     public String filesystemPathForFullPath(String fullPath) {
-        return new File(rootUri.getPath(), fullPath).toString();
+        String child = fullPath;
+        if (child != null && child.startsWith("/")) {
+            child = child.substring(1);
+        }
+        return new File(rootUri.getPath(), child).toString();
     }
 
     @Override
@@ -141,7 +145,7 @@ public class LocalFilesystem extends Filesystem {
                 throw new FileExistsException("create/exclusive fails");
             }
             if (directory) {
-                fp.mkdir();
+                fp.mkdirs();
             } else {
                 fp.createNewFile();
             }
