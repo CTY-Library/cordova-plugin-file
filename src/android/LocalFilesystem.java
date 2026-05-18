@@ -60,6 +60,23 @@ public class LocalFilesystem extends Filesystem {
         return filesystemPathForFullPath(url.path);
     }
 
+    @Override
+    public Uri nativeUriForFullPath(String fullPath) {
+        Uri ret = null;
+        if (fullPath != null) {
+            String child = fullPath;
+            if (child.startsWith("/")) {
+                child = child.substring(1);
+            }
+            String encodedPath = Uri.fromFile(new File(rootUri.getPath(), child)).getEncodedPath();
+            if (encodedPath.startsWith("/")) {
+                encodedPath = encodedPath.substring(1);
+            }
+            ret = rootUri.buildUpon().appendEncodedPath(encodedPath).build();
+        }
+        return ret;
+    }
+
     private String fullPathForFilesystemPath(String absolutePath) {
         if (absolutePath != null && absolutePath.startsWith(rootUri.getPath())) {
             return absolutePath.substring(rootUri.getPath().length() - 1);
@@ -145,12 +162,16 @@ public class LocalFilesystem extends Filesystem {
                 throw new FileExistsException("create/exclusive fails");
             }
             if (directory) {
-                fp.mkdirs();
+                if (!fp.exists()) {
+                    if (!fp.mkdirs()) {
+                        throw new IOException("Cannot create directory: " + fp.getAbsolutePath());
+                    }
+                }
             } else {
                 fp.createNewFile();
             }
             if (!fp.exists()) {
-                throw new FileExistsException("create fails");
+                throw new IOException("create fails: " + fp.getAbsolutePath());
             }
         }
         else {

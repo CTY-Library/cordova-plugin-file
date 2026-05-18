@@ -133,6 +133,14 @@ to config.xml in order for the application to find previously stored files.
             <allow-navigation href="cdvfile:*" />
         </config-file>
 
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <application android:requestLegacyExternalStorage="true" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+        </config-file>
+
         <source-file src="src/android/EncodingException.java" target-dir="src/org/apache/cordova/file" />
         <source-file src="src/android/FileExistsException.java" target-dir="src/org/apache/cordova/file" />
         <source-file src="src/android/InvalidModificationException.java" target-dir="src/org/apache/cordova/file" />

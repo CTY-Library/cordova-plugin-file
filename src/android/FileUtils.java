@@ -21,10 +21,12 @@ package org.apache.cordova.file;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -544,7 +546,15 @@ public class FileUtils extends CordovaPlugin {
     }
 
     private void getWritePermission(String rawArgs, int action, CallbackContext callbackContext) {
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+: MANAGE_EXTERNAL_STORAGE must be granted via Settings
+            if (!Environment.isExternalStorageManager()) {
+                int requestCode = pendingRequests.createRequest(rawArgs, action, callbackContext);
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + cordova.getActivity().getPackageName()));
+                cordova.getActivity().startActivityForResult(intent, requestCode);
+            }
+        } else if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             int requestCode = pendingRequests.createRequest(rawArgs, action, callbackContext);
             PermissionHelper.requestPermission(this, requestCode, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
@@ -570,10 +580,14 @@ public class FileUtils extends CordovaPlugin {
     }
 
     private boolean hasWritePermission() {
-        // Starting with API 33, requesting WRITE_EXTERNAL_STORAGE is an auto permission rejection
-        return android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                ? true
-                : PermissionHelper.hasPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+: need MANAGE_EXTERNAL_STORAGE for external root directory access
+            return Environment.isExternalStorageManager();
+        } else if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return true;
+        } else {
+            return PermissionHelper.hasPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
     }
 
     private boolean needPermission(String nativeURL, int permissionType) throws JSONException {
