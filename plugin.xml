@@ -133,10 +133,6 @@ to config.xml in order for the application to find previously stored files.
             <allow-navigation href="cdvfile:*" />
         </config-file>
 
-        <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <application android:requestLegacyExternalStorage="true" />
-        </config-file>
-
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
         </config-file>
